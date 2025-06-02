@@ -1,5 +1,4 @@
 .env
-.env.example
 .env.production
 auth.db
 history.db
