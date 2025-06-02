@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  auth-service:
+    build:
+      context: ./auth_service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./auth.db
+      - SECRET_KEY=your-super-secret-key-change-in-production
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - HISTORY_SERVICE_URL=http://history-service:8000
+      - ELI5_SERVICE_URL=http://eli5-service:8000
+    volumes:
+      - ./auth_service:/app
+      - auth_db:/app/data
+    networks:
+      - microservices
+
+  history-service:
+    build:
+      context: ./history_service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./history.db
+      - SECRET_KEY=your-super-secret-key-change-in-production
+      - ALGORITHM=HS256
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - ELI5_SERVICE_URL=http://eli5-service:8000
+    volumes:
+      - ./history_service:/app
+      - history_db:/app/data
+    networks:
+      - microservices
+    depends_on:
+      - auth-service
+
+  eli5-service:
+    build:
+      context: ./ELI5
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=gemini-2.0-flash-thinking-exp-01-21
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - HISTORY_SERVICE_URL=http://history-service:8000
+      - HTTP_TIMEOUT=30.0
+      - HTTP_MAX_RETRIES=3
+    volumes:
+      - ./ELI5:/app
+    networks:
+      - microservices
+    depends_on:
+      - auth-service
+      - history-service
+
+networks:
+  microservices:
+    driver: bridge
+
+volumes:
+  auth_db:
+  history_db:

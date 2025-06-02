@@ -1,0 +1,72 @@
+services:
+  # ELI5 Main Service
+  - type: web
+    name: eli5-service
+    runtime: docker
+    dockerfilePath: ./ELI5/Dockerfile
+    dockerContext: ./ELI5
+    plan: free
+    region: oregon
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash-thinking-exp-01-21
+      - key: AUTH_SERVICE_URL
+        value: https://eli5-auth-service.onrender.com
+      - key: HISTORY_SERVICE_URL
+        value: https://eli5-history-service.onrender.com
+      - key: HTTP_TIMEOUT
+        value: "30.0"
+      - key: HTTP_MAX_RETRIES
+        value: "3"
+
+  # Auth Service
+  - type: web
+    name: eli5-auth-service
+    runtime: docker
+    dockerfilePath: ./auth_service/Dockerfile
+    dockerContext: ./auth_service
+    plan: free
+    region: oregon
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://your-db-url-here
+      - key: SECRET_KEY
+        sync: false
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30"
+      - key: HISTORY_SERVICE_URL
+        value: https://eli5-history-service.onrender.com
+      - key: ELI5_SERVICE_URL
+        value: https://eli5-service.onrender.com
+
+  # History Service
+  - type: web
+    name: eli5-history-service
+    runtime: docker
+    dockerfilePath: ./history_service/Dockerfile
+    dockerContext: ./history_service
+    plan: free
+    region: oregon
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://your-db-url-here
+      - key: SECRET_KEY
+        sync: false
+      - key: ALGORITHM
+        value: HS256
+      - key: AUTH_SERVICE_URL
+        value: https://eli5-auth-service.onrender.com
+      - key: ELI5_SERVICE_URL
+        value: https://eli5-service.onrender.com
+
+  # PostgreSQL Database
+  - type: database
+    name: eli5-database
+    databaseName: eli5_db
+    user: eli5_user
+    plan: free
+    region: oregon

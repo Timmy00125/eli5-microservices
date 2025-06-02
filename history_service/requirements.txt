@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+python-jose[cryptography] # For JWT decoding
+pydantic
+httpx # For inter-service communication
+psycopg2-binary # PostgreSQL adapter
+# No passlib needed here as it only consumes tokens

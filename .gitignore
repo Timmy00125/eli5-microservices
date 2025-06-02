@@ -1,0 +1,12 @@
+.env
+.env.example
+.env.production
+auth.db
+history.db
+
+ELI5/__pycache__/
+
+
+auth_service/__pycache__/
+
+history_service/__pycache__/
